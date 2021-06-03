@@ -12,6 +12,10 @@ module.exports = {
 
   devtool: 'source-map',
 
+  performance: {
+    hints: false
+  },
+  
   module: {
     rules: [
       {
