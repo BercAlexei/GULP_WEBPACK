@@ -1,22 +1,22 @@
 'use strict';
 
-let path = require('path');
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export const config = {
   mode: 'development',
-  // production development
   output: {
     filename: 'script.js',
     path: __dirname + '/js'
   },
-
   devtool: 'source-map',
-
-  performance: {
+  performance:{
     hints: false
   },
-  
-  module: {
+  module:{
     rules: [
       {
         test: /\.m?js$/,
@@ -32,4 +32,4 @@ module.exports = {
       }
     ]
   }
-};
+}

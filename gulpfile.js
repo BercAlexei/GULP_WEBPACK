@@ -1,29 +1,31 @@
-const { parallel } = require('gulp')
-const gulp = require('gulp'),
-	browserSync = require('browser-sync'),
-	rename = require('gulp-rename'),
-	cleanCSS = require('gulp-clean-css'),
-	autoprefixer = require('gulp-autoprefixer'),
-	sass = require('gulp-sass')(require('sass')),
-	imagemin = require('gulp-imagemin'),
-	htmlmin = require('gulp-htmlmin'),
-	del = require('del'),
-	ttfToWoff2 = require('gulp-ttf2woff2'),
-	webpack = require('webpack-stream');
+import gulp from 'gulp';
+const { task, watch, src, dest, parallel, series } = gulp;
+import { init, reload, stream } from 'browser-sync';
+import rename from 'gulp-rename';
+import cleanCSS from 'gulp-clean-css';
+import autoprefixer from 'gulp-autoprefixer';
+import imagemin from 'gulp-imagemin';
+import htmlmin from 'gulp-htmlmin';
+import { sync } from 'del';
+import ttfToWoff2 from 'gulp-ttf2woff2';
+import webpack from 'webpack-stream';
+import { config } from './webpack.config.js';
+import dartSass from 'sass';
+import gulpSass from 'gulp-sass';
+const sass = gulpSass( dartSass );
 
-gulp.task('server', function () {
-	browserSync.init({
+task('server', function () {
+	init({
 		server: {
 			baseDir: 'dist',
 		},
 	})
 
-	gulp.watch('src/*.html').on('change', browserSync.reload)
+	watch('src/*.html').on('change', reload)
 })
 
-gulp.task('styles', function () {
-	return gulp
-		.src('src/scss/**/*.+(scss|sass)')
+task('styles', function () {
+	return src('src/scss/**/*.+(scss|sass)')
 		.pipe(sass({ outputStyle: 'compressed' }).on('error', sass.logError))
 		.pipe(
 			rename({
@@ -33,75 +35,71 @@ gulp.task('styles', function () {
 		)
 		.pipe(autoprefixer())
 		.pipe(cleanCSS({ compatibility: 'ie8' }))
-		.pipe(gulp.dest('dist/css'))
-		.pipe(browserSync.stream())
+		.pipe(dest('dist/css'))
+		.pipe(stream())
 })
 
-gulp.task('scripts', function () {
-	return gulp
-		.src('src/js/_script.js')
-		.pipe(webpack(require('./webpack.config.js')))
-		.pipe(gulp.dest('dist/js'))
-		.pipe(browserSync.stream())
+task('scripts', function () {
+	return src('src/js/_script.js')
+		.pipe(webpack(config))
+		.pipe(dest('dist/js'))
+		.pipe(stream())
 })
 
-gulp.task('watch', function () {
-	gulp.watch('src/scss/**/*.+(scss|sass|css)', gulp.parallel('styles'))
-	gulp.watch(['src/js/**/*.js'], gulp.parallel('scripts'))
-	gulp.watch('src/*.html').on('change', gulp.parallel('html'))
-	gulp.watch('src/img/**/*').on('add', gulp.parallel('images'))
-	gulp.watch('src/icons/**/*').on('add', gulp.parallel('icons'))
-	gulp.watch('src/fonts/**/*').on('add', gulp.parallel('fonts'))
+task('watch', function () {
+	watch('src/scss/**/*.+(scss|sass|css)', parallel('styles'))
+	watch(['src/js/**/*.js'], parallel('scripts'))
+	watch('src/*.html').on('change', parallel('html'))
+	watch('src/img/**/*').on('add', parallel('images'))
+	watch('src/icons/**/*').on('add', parallel('icons'))
+	watch('src/fonts/**/*').on('add', parallel('fonts'))
 })
 
-gulp.task('html', function () {
-	return gulp
-		.src('src/*.html')
+task('html', function () {
+	return src('src/*.html')
 		.pipe(htmlmin({ collapseWhitespace: true }))
-		.pipe(gulp.dest('dist/'))
+		.pipe(dest('dist/'))
 })
 
-gulp.task('fonts', function () {
-	gulp.src('src/fonts/*.ttf')
+task('fonts', function () {
+	src('src/fonts/*.ttf')
 		.pipe(ttfToWoff2())
-		.pipe(gulp.dest('dist/fonts'))
-		.pipe(browserSync.stream());
-	return gulp.src('src/fonts/icomoon/**')	
-		.pipe(gulp.dest('dist/fonts'))
-		.pipe(browserSync.stream())
+		.pipe(dest('dist/fonts'))
+		.pipe(stream());
+	return src('src/fonts/icomoon/**')
+		.pipe(dest('dist/fonts'))
+		.pipe(stream())
 })
 
-gulp.task('icons', function () {
-	return gulp
-		.src('src/icons/**/*')
-		.pipe(gulp.dest('dist/icons'))
-		.pipe(browserSync.stream())
+task('icons', function () {
+	return src('src/icons/**/*')
+		.pipe(dest('dist/icons'))
+		.pipe(stream())
 })
 
-gulp.task('mailer', function () {
-	return gulp.src('src/mailer/*').pipe(gulp.dest('dist/mailer'))
+task('mailer', function () {
+	return src('src/mailer/*').pipe(dest('dist/mailer'))
 })
 
-gulp.task('images', function () {
-	return gulp
-		.src('src/img/**/*')
+task('images', function () {
+	return src('src/img/**/*')
 		.pipe(imagemin())
-		.pipe(gulp.dest('dist/img'))
-		.pipe(browserSync.stream())
+		.pipe(dest('dist/img'))
+		.pipe(stream())
 })
 
-gulp.task('del', function(done) {
-	del.sync(['dist']);
+task('del', function (done) {
+	sync(['dist']);
 	done();
 });
 
 
 
-gulp.task(
+task(
 	'default',
-	gulp.series(
+	series(
 		'del',
-		gulp.parallel(
+		parallel(
 			'watch',
 			'server',
 			'styles',

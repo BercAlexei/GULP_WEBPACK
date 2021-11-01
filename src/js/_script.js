@@ -1,5 +1,5 @@
 'use strict'
-import {cons} from './modules/func'
+import {cons} from './modules/func.js'
 document.addEventListener('DOMContentLoaded', () => {
     
     cons()
